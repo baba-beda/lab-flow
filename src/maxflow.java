@@ -34,10 +34,21 @@ public class maxflow {
 
 
     class Pair {
-        int x, y;
-        Pair(int y, int x) {
-            this.y = y;
-            this.x = x;
+        int to, cap;
+
+        public Pair(int to, int cap) {
+            this.to = to;
+            this.cap = cap;
+        }
+    }
+
+    class Triplet {
+        int to, cap, flow;
+
+        public Triplet(int to, int cap, int flow) {
+            this.to = to;
+            this.cap = cap;
+            this.flow = flow;
         }
     }
 
@@ -59,32 +70,89 @@ public class maxflow {
     FastScanner in;
     PrintWriter out;
 
+
+    int n;
+    int[][] capacity, flow;
+    int s;
+    int t;
+    int[] d;
+    int[] ptr;
+    int[] q;
+
+    final int INF = 1000000010;
+
     public void solve() throws IOException {
-        int n = in.nextInt(), m = in.nextInt();
-        ArrayList<Pair>[] graph = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
-            graph[i] = new ArrayList<Pair>();
-        }
+        n = in.nextInt();
+        int m = in.nextInt();
+        capacity = new int[n][n];
+        flow = new int[n][n];
+        s = 0;
+        t = n - 1;
+
+        d = new int[n];
+        ptr = new int[n];
+        q = new int[n];
+
         for (int i = 0; i < m; i++) {
-            graph[in.nextInt() - 1].add(new Pair(in.nextInt() - 1, in.nextInt()));
+            int v = in.nextInt() - 1;
+            int to = in.nextInt() - 1;
+            int cap = in.nextInt();
+            capacity[v][to] = cap;
         }
 
-    }
-
-
-    boolean dfs(int v, ArrayList<Integer>[] graph, int[] matching, boolean[] used) {
-        if (used[v])
-            return false;
-
-        used[v] = true;
-        for (int to : graph[v]) {
-            if (matching[to] == -1 || dfs(matching[to], graph, matching, used)) {
-                matching[to] = v;
-                return true;
+        int ans = 0;
+        for(;;) {
+            if (!bfs())
+                break;
+            Arrays.fill(ptr, 0);
+            int pushed;
+            while ((pushed = dfs(s, INF)) != 0) {
+                ans += pushed;
             }
         }
-        return false;
+        out.println(ans);
+
     }
+
+    boolean bfs() {
+        int qh = 0, qt = 0;
+        q[qt++] = s;
+        Arrays.fill(d, -1);
+        d[s] = 0;
+        while (qh < qt) {
+            int v = q[qh++];
+            for (int to = 0; to < n; to++) {
+                if (d[to] == -1 && flow[v][to] < capacity[v][to]) {
+                    q[qt++] = to;
+                    d[to] = d[v] + 1;
+                }
+            }
+        }
+        return (d[t] != -1);
+    }
+
+    int dfs (int v, int f) {
+        if (f == 0)
+            return 0;
+        if (v == t)
+            return f;
+
+        for (int to = ptr[v]; to < n; to++) {
+            if (d[to] != d[v] + 1)
+                continue;
+            int pushed = dfs(to, Math.min(f, capacity[v][to] - flow[v][to]));
+            if (pushed != 0) {
+                flow[v][to] += pushed;
+                flow[to][v] -= pushed;
+                return pushed;
+            }
+        }
+        return 0;
+    }
+
+
+
+
 
     public void run() {
         try {
