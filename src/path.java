@@ -1,11 +1,11 @@
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
- * Created by daria on 12.11.14.
+ * Created by daria on 21.11.14.
  */
-
-public class matching {
+public class path {
     class FastScanner {
         StreamTokenizer st;
 
@@ -60,39 +60,28 @@ public class matching {
     PrintWriter out;
 
     public void solve() throws IOException {
-        int n = in.nextInt(), m = in.nextInt(), e = in.nextInt();
-        ArrayList<Integer>[] v1 = new ArrayList[n];
-        ArrayList<Integer>[] v2 = new ArrayList[m];
+        int n = in.nextInt(), m = in.nextInt();
+        int ans = 0;
+        ArrayList<Integer>[] graph = new ArrayList[n];
         for (int i = 0; i < n; i++) {
-            v1[i] = new ArrayList<Integer>();
+            graph[i] = new ArrayList<Integer>();
         }
         for (int i = 0; i < m; i++) {
-            v2[i] = new ArrayList<Integer>();
-        }
-
-        for (int i = 0; i < e; i++) {
             int a = in.nextInt() - 1, b = in.nextInt() - 1;
-            v1[a].add(b);
-            v2[b].add(a);
+            if (a != b) {
+                graph[a].add(b);
+            }
         }
-
-        int[] matching = new int[n * m];
+        int[] matching = new int[n * n];
         Arrays.fill(matching, -1);
         boolean[] used = new boolean[n];
-        boolean aux;
-
         for (int i = 0; i < n; i++) {
             Arrays.fill(used, false);
-            aux = dfs(i, v1, matching, used);
-        }
-
-        int ans = 0;
-        for (int i = 0; i < n * m; i++) {
-            if (matching[i] != -1) {
+            if (dfs(i, graph, matching, used)) {
                 ans++;
             }
         }
-        out.println(ans);
+        out.println(n - ans);
 
     }
 
@@ -118,8 +107,8 @@ public class matching {
                 in = new FastScanner(new File("input.txt"));
                 out = new PrintWriter(new File("output.txt"));
             } else {
-                in = new FastScanner(new File("matching" + ".in"));
-                out = new PrintWriter(new File("matching" + ".out"));
+                in = new FastScanner(new File("paths" + ".in"));
+                out = new PrintWriter(new File("paths" + ".out"));
             }
             solve();
             out.close();
@@ -129,6 +118,6 @@ public class matching {
     }
 
     public static void main(String[] arg) {
-        new matching().run();
+        new path().run();
     }
 }
