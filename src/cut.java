@@ -1,11 +1,10 @@
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 /**
- * Created by daria on 12.11.14.
+ * Created by daria on 26.11.14.
  */
-public class maxflow {
+import java.io.*;
+import java.util.*;
+
+public class cut {
     class FastScanner {
         StreamTokenizer st;
 
@@ -33,37 +32,16 @@ public class maxflow {
     }
 
 
-    class Pair {
-        int to, cap;
 
-        public Pair(int to, int cap) {
-            this.to = to;
-            this.cap = cap;
-        }
-    }
 
-    class Triplet {
-        int to, cap, flow;
+    class Edge {
+        int v, to, cap, fl;
 
-        public Triplet(int to, int cap, int flow) {
-            this.to = to;
-            this.cap = cap;
-            this.flow = flow;
-        }
-    }
-
-    class Edge implements Comparable<Edge> {
-        int u, v;
-        int weight;
-
-        Edge(int u, int v, int weight) {
-            this.u = u;
+        public Edge(int v, int to, int cap, int fl) {
             this.v = v;
-            this.weight = weight;
-        }
-
-        public int compareTo(Edge a) {
-            return Integer.compare(weight, a.weight);
+            this.to = to;
+            this.cap = cap;
+            this.fl = fl;
         }
     }
 
@@ -71,14 +49,15 @@ public class maxflow {
     PrintWriter out;
 
 
+
     int n;
     int[][] capacity, flow;
     int s;
     int t;
     int[] d;
-    int[] ptr;
     int[] q;
-
+    boolean[] visited;
+    int[] ptr;
 
     final int INF = 1000000010;
 
@@ -91,18 +70,21 @@ public class maxflow {
         t = n - 1;
 
         d = new int[n];
-        ptr = new int[n];
         q = new int[n];
+        ptr = new int[n];
+        visited = new boolean[n];
 
         for (int i = 0; i < m; i++) {
             int v = in.nextInt() - 1;
             int to = in.nextInt() - 1;
             int cap = in.nextInt();
             capacity[v][to] = cap;
+            capacity[to][v] = cap;
         }
 
         int ans = 0;
         for(;;) {
+
             if (!bfs())
                 break;
             Arrays.fill(ptr, 0);
@@ -111,7 +93,33 @@ public class maxflow {
                 ans += pushed;
             }
         }
-        out.println(ans);
+
+
+        ArrayList<Integer>[] rGraph = new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            rGraph[i] = new ArrayList<Integer>();
+        }
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (capacity[i][j] - flow[i][j] > 0)
+                    rGraph[i].add(j);
+            }
+        }
+
+        dfs(s, rGraph);
+
+        ArrayList<Integer> answer = new ArrayList<Integer>();
+        for (int i = 0; i < n; i++) {
+            if (visited[i])
+                answer.add(i + 1);
+        }
+
+        out.println(answer.size());
+        for (int i : answer) {
+            out.print(i + " ");
+        }
+
+
 
     }
 
@@ -151,6 +159,14 @@ public class maxflow {
         return 0;
     }
 
+    void dfs(int v, ArrayList<Integer>[] rGraph) {
+        visited[v] = true;
+        for (int to : rGraph[v]) {
+            if (!visited[to]) {
+                dfs(to, rGraph);
+            }
+        }
+    }
 
 
 
@@ -162,8 +178,8 @@ public class maxflow {
                 in = new FastScanner(new File("input.txt"));
                 out = new PrintWriter(new File("output.txt"));
             } else {
-                in = new FastScanner(new File("maxflow" + ".in"));
-                out = new PrintWriter(new File("maxflow" + ".out"));
+                in = new FastScanner(new File("cut" + ".in"));
+                out = new PrintWriter(new File("cut" + ".out"));
             }
             solve();
             out.close();
@@ -173,6 +189,6 @@ public class maxflow {
     }
 
     public static void main(String[] arg) {
-        new maxflow().run();
+        new cut().run();
     }
 }
