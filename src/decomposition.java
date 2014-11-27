@@ -1,11 +1,10 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 /**
- * Created by daria on 12.11.14.
+ * Created by daria on 27.11.14.
  */
-public class maxflow {
+public class decomposition {
     class FastScanner {
         StreamTokenizer st;
 
@@ -29,26 +28,6 @@ public class maxflow {
         String nextString() throws IOException {
             st.nextToken();
             return st.sval;
-        }
-    }
-
-
-    class Pair {
-        int to, cap;
-
-        public Pair(int to, int cap) {
-            this.to = to;
-            this.cap = cap;
-        }
-    }
-
-    class Triplet {
-        int to, cap, flow;
-
-        public Triplet(int to, int cap, int flow) {
-            this.to = to;
-            this.cap = cap;
-            this.flow = flow;
         }
     }
 
@@ -91,11 +70,92 @@ public class maxflow {
             edges.add(new Edge(to, from, 0));
         }
 
-        out.println(dinic());
+        dinic();
 
+        fullDecomposition();
     }
 
-    long dinic() {
+    ArrayList<Integer> simpleDecomposition(int s) {
+        ArrayList<Integer> ed = new ArrayList<Integer>();
+        ArrayList<Integer> vertices = new ArrayList<Integer>();
+        int[] ind = new int[n];
+        int count = 0;
+        int v = s;
+        int e = -1;
+        while (!vertices.contains(v)) {
+
+            for (int id : graph[v]) {
+                if (id % 2 == 0) {
+                    if (edges.get(id).flow > 0) {
+                        e = id;
+                    }
+                }
+            }
+
+            if (e == -1) {
+                if (v == t) {
+                    break;
+                }
+                else {
+                    return null;
+                }
+            }
+            ed.add(e);
+            vertices.add(v);
+            ind[v] = count++;
+            v = edges.get(e).to;
+        }
+
+        if (vertices.contains(v)) {
+            for (int i = ed.size() - 1; i >= 0; i--)  {
+                if (i >= ind[v]) {
+                    ed.remove(i);
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        int min = Integer.MAX_VALUE;
+
+        for (int i = 0; i < ed.size(); i++) {
+            min = Math.min(min, edges.get(ed.get(i)).flow);
+        }
+
+        for (int i = 0; i < ed.size(); i++) {
+            edges.get(ed.get(i)).flow -= min;
+        }
+
+        Collections.reverse(ed);
+        ed.add(min);
+        return ed;
+    }
+
+    void fullDecomposition() {
+        ArrayList<ArrayList<Integer>> d = new ArrayList<ArrayList<Integer>>();
+        ArrayList<Integer> p;
+        while ((p = simpleDecomposition(s)) != null) {
+            d.add(p);
+        }
+        for (int i = 0; i < n - 1; i++) {
+            while ((p = simpleDecomposition(i)) != null) {
+                d.add(p);
+            }
+        }
+
+        out.println(d.size());
+        for (ArrayList<Integer> el : d) {
+            out.print(el.get(el.size() - 1) + " ");
+            out.print(el.size() - 1 + " ");
+            for (int i = el.size() - 2; i >= 0; i--) {
+                out.print((el.get(i) / 2 + 1) + " ");
+            }
+            out.println();
+        }
+    }
+
+
+    void dinic() {
         long flow = 0;
         while (bfs()) {
             Arrays.fill(ptr, 0);
@@ -104,7 +164,6 @@ public class maxflow {
                 flow += pushed;
             }
         }
-        return flow;
     }
 
     boolean bfs() {
@@ -147,8 +206,6 @@ public class maxflow {
 
 
 
-
-
     public void run() {
         try {
             File defaultInput = new File("input.txt");
@@ -156,8 +213,8 @@ public class maxflow {
                 in = new FastScanner(new File("input.txt"));
                 out = new PrintWriter(new File("output.txt"));
             } else {
-                in = new FastScanner(new File("maxflow" + ".in"));
-                out = new PrintWriter(new File("maxflow" + ".out"));
+                in = new FastScanner(new File("decomposition" + ".in"));
+                out = new PrintWriter(new File("decomposition" + ".out"));
             }
             solve();
             out.close();
@@ -167,6 +224,7 @@ public class maxflow {
     }
 
     public static void main(String[] arg) {
-        new maxflow().run();
+        new decomposition().run();
     }
+
 }
