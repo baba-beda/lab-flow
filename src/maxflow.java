@@ -78,6 +78,7 @@ public class maxflow {
     int[] d;
     int[] ptr;
     int[] q;
+    boolean[] visited;
 
 
     final int INF = 1000000010;
@@ -93,6 +94,7 @@ public class maxflow {
         d = new int[n];
         ptr = new int[n];
         q = new int[n];
+        visited = new boolean[n];
 
         for (int i = 0; i < m; i++) {
             int v = in.nextInt() - 1;
@@ -138,7 +140,8 @@ public class maxflow {
         if (v == t)
             return f;
 
-        for (int to = ptr[v]; to < n; ptr[v]++, to++) {
+        visited[v] = true;
+        for (int to = ptr[v]; to < n; to++, ptr[v]++) {
             if (d[to] != d[v] + 1)
                 continue;
             int pushed = dfs(to, Math.min(f, capacity[v][to] - flow[v][to]));

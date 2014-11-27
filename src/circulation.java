@@ -1,10 +1,10 @@
-/**
- * Created by daria on 26.11.14.
- */
 import java.io.*;
-import java.util.*;
+import java.util.Arrays;
 
-public class cut {
+/**
+ * Created by daria on 27.11.14.
+ */
+public class circulation {
     class FastScanner {
         StreamTokenizer st;
 
@@ -32,16 +32,37 @@ public class cut {
     }
 
 
+    class Pair {
+        int v, to;
 
-
-    class Edge {
-        int v, to, cap, fl;
-
-        public Edge(int v, int to, int cap, int fl) {
+        public Pair(int v, int to) {
             this.v = v;
             this.to = to;
+        }
+    }
+
+    class Triplet {
+        int to, cap, flow;
+
+        public Triplet(int to, int cap, int flow) {
+            this.to = to;
             this.cap = cap;
-            this.fl = fl;
+            this.flow = flow;
+        }
+    }
+
+    class Edge implements Comparable<Edge> {
+        int u, v;
+        int weight;
+
+        Edge(int u, int v, int weight) {
+            this.u = u;
+            this.v = v;
+            this.weight = weight;
+        }
+
+        public int compareTo(Edge a) {
+            return Integer.compare(weight, a.weight);
         }
     }
 
@@ -49,80 +70,67 @@ public class cut {
     PrintWriter out;
 
 
-
     int n;
     int[][] capacity, flow;
+    int[] lowCapacity;
     int s;
     int t;
     int[] d;
-    int[] q;
-    boolean[] visited;
     int[] ptr;
+    int[] q;
+
 
     final int INF = 1000000010;
 
     public void solve() throws IOException {
         n = in.nextInt();
         int m = in.nextInt();
-        capacity = new int[n][n];
+        capacity = new int[n += 2][n];
         flow = new int[n][n];
+        lowCapacity = new int[m];
+
+        Pair[] edges = new Pair[m];
+
         s = 0;
         t = n - 1;
 
         d = new int[n];
-        q = new int[n];
         ptr = new int[n];
-        visited = new boolean[n];
+        q = new int[n];
 
         for (int i = 0; i < m; i++) {
-            int v = in.nextInt() - 1;
-            int to = in.nextInt() - 1;
-            int cap = in.nextInt();
-            capacity[v][to] = cap;
-            capacity[to][v] = cap;
+            int v = in.nextInt();
+            int to = in.nextInt();
+            int lCap = in.nextInt();
+            int hCap = in.nextInt();
+            capacity[v][to] = hCap - lCap;
+            capacity[s][to] += lCap;
+            capacity[v][t] += lCap;
+            lowCapacity[i] = lCap;
+            edges[i] = new Pair(v, to);
         }
 
         int ans = 0;
-        for(;;) {
-
-            if (!bfs())
-                break;
-            //Arrays.fill(ptr, 0);
-            Arrays.fill(visited, false);
+        while(bfs()) {
+            Arrays.fill(ptr, 0);
             int pushed;
             while ((pushed = dfs(s, INF)) != 0) {
                 ans += pushed;
+
             }
         }
 
-
-        ArrayList<Integer>[] rGraph = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
-            rGraph[i] = new ArrayList<Integer>();
-        }
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (capacity[i][j] - flow[i][j] > 0)
-                    rGraph[i].add(j);
+        for (Pair edge : edges) {
+            if (flow[0][edge.to] - capacity[0][edge.to] != 0) {
+                out.println("NO");
+                return;
             }
         }
 
-        Arrays.fill(visited, false);
-
-        dfs(s, rGraph);
-
-        ArrayList<Integer> answer = new ArrayList<Integer>();
-        for (int i = 0; i < n; i++) {
-            if (visited[i])
-                answer.add(i + 1);
+        out.println("YES");
+        for (int i = 0; i < m; i++) {
+            out.println(flow[edges[i].v][edges[i].to] + lowCapacity[i]);
         }
-
-        out.println(answer.size());
-        for (int i : answer) {
-            out.print(i + " ");
-        }
-
-
 
     }
 
@@ -149,9 +157,8 @@ public class cut {
         if (v == t)
             return f;
 
-        visited[v] = true;
-        for (int to = 0; to < n; to++) {
-            if (d[to] != d[v] + 1 || visited[to])
+        for (int to = ptr[v]; to < n; to++, ptr[v]++) {
+            if (d[to] != d[v] + 1)
                 continue;
             int pushed = dfs(to, Math.min(f, capacity[v][to] - flow[v][to]));
             if (pushed != 0) {
@@ -163,14 +170,6 @@ public class cut {
         return 0;
     }
 
-    void dfs(int v, ArrayList<Integer>[] rGraph) {
-        visited[v] = true;
-        for (int to : rGraph[v]) {
-            if (!visited[to]) {
-                dfs(to, rGraph);
-            }
-        }
-    }
 
 
 
@@ -182,8 +181,8 @@ public class cut {
                 in = new FastScanner(new File("input.txt"));
                 out = new PrintWriter(new File("output.txt"));
             } else {
-                in = new FastScanner(new File("cut" + ".in"));
-                out = new PrintWriter(new File("cut" + ".out"));
+                in = new FastScanner(new File("circulation" + ".in"));
+                out = new PrintWriter(new File("circulation" + ".out"));
             }
             solve();
             out.close();
@@ -193,6 +192,6 @@ public class cut {
     }
 
     public static void main(String[] arg) {
-        new cut().run();
+        new circulation().run();
     }
 }
